@@ -23,6 +23,7 @@ def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, t
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     ‘(len(time_values), len(observables))‘.
     """
+
     diag_hamiltonian = None
 
     evolution_operator = None
