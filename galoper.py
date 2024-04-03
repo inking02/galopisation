@@ -1,5 +1,5 @@
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister
 from typing import List, Union
 from numpy.typing import NDArray
 from qiskit.quantum_info import SparsePauliOp, Pauli, PauliList
@@ -33,26 +33,34 @@ def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, t
     evolved_states = np.einsum("sij, j -> si", evolution_operators, init_state)
     observables_expected_values = np.einsum("si, mij, sj -> sm", evolved_states.conj(), observables, evolved_states)
 
+
+    test1 = len(time_values)
+    test2 = len(observables)
+    print("shape attendue: ", test1, ", ", test2)
+    print("shape obtenue: ", observables_expected_values.shape)
+
+
+
     return observables_expected_values
 
 def trotter_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, time_values: NDArray[np.float_], observables: List[SparsePauliOp], num_trotter_steps: NDArray[np.int_],):
     """
-    Simulate, using Trotterisation, the evolution of a quantum system in state ‘initial_state‘
-    under a given ‘hamiltonian‘ for different ‘time_values‘. The result is a series of
-    expected values for given ‘observables‘.
+    Simulate, using Trotterisation, the evolution of a quantum system in state "initial_state"
+    under a given "hamiltonian" for different "time_values". The result is a series of
+    expected values for given "observables".
 
     Args:
     time_values (NDArray[np.float_]): An array of time values.
     initial_state (QuantumCircuit): The circuit preparing the initial quantum state.
     hamiltonian (SparsePauliOp): The Hamiltonien of the system
     observables (List[SparsePauliOp]): The observable to be measure at each the the
-    ‘time_values‘.
+    "time_values".
     num_trotter_steps: (NDArray[np.int_]): The number of steps of the Trotterization for
-    each ‘time_values‘.
+    each "time_values".
 
     Returns:
     NDArray[np.float_]: The expected values of the observable. Should be of shape
-    ‘(len(time_values), len(observables))‘.
+    "(len(time_values), len(observables))".
     """
     for n in range(num_trotter_steps):
 
