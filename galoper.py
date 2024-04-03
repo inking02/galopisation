@@ -1,36 +1,37 @@
 import numpy as np
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from typing import List, Union
 from numpy.typing import NDArray
-from qiskit.quantum_info import SparsePauliOp, Pauli
+from qiskit.quantum_info import SparsePauliOp, Pauli, PauliList
 from qiskit.circuit import Parameter
 from qiskit.quantum_info import Statevector
 from qiskit.primitives import Estimator
 def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, time_values: NDArray[np.float_], observables: List[SparsePauliOp],):
     """
-    Simulate the exact evolution of a quantum system in state ‘initial_state‘ under a given
-    ‘hamiltonian‘ for different ‘time_values‘. The result is a series of expected values
-    for given ‘observables‘.
+    Simulate the exact evolution of a quantum system in state "initial_state" under a given
+    "hamiltonian" for different "time_values". The result is a series of expected values
+    for given "observables".
 
     Args:
     time_values (NDArray[np.float_]): An array of time values.
     initial_state (QuantumCircuit): The circuit preparing the initial quantum state.
     hamiltonian (SparsePauliOp): The Hamiltonien of the system
     observables (List[SparsePauliOp]): The observable to be measure at each the the
-    ‘time_values‘.
+    "time_values".
 
     Returns:
     NDArray[np.float_]: The expected values of the observable. Should be of shape
-    ‘(len(time_values), len(observables))‘.
+    "(len(time_values), len(observables))".
     """
+    hamiltonian_matrix = hamiltonian.to_matrix()
+    eigenvalues, eigenvectors = np.linalg.eigh(hamiltonian_matrix)
 
-    diag_hamiltonian = None
+    w = np.exp((-1*time_values[:, None])*eigenvalues[None, :])
+    evolution_operators = np.einsum("sk, ik, jk -> sij", w, eigenvectors, eigenvectors.conj())
 
-    evolution_operator = None
-
-    evolution_state = evolution_operator * Statevector(initial_state)
-    observables_expected_values = None
-
+    init_state = Statevector(initial_state)
+    evolved_states = np.einsum("sij, j -> si", evolution_operators, init_state)
+    observables_expected_values = np.einsum("si, mij, sj -> sm", evolved_states.conj(), observables, evolved_states)
 
     return observables_expected_values
 
@@ -53,12 +54,13 @@ def trotter_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp,
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     ‘(len(time_values), len(observables))‘.
     """
+    for n in range(num_trotter_steps):
 
-    observables_expected_values = None
+        observables_expected_values = None
 
     return observables_expected_values
 
-def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Parameter], num_trotter_steps: int,) -> QuantumCircuit:
+def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Parameter], num_trotter_steps: int) -> QuantumCircuit:
     """
     Construct the ‘QuantumCircuit‘ using the first order Trotter formula.
 
@@ -70,9 +72,63 @@ def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Par
     Returns:
     QuantumCircuit: The circuit of the Trotter evolution operator
     """
-
-
-
-    circuit = None
+    qreg = QuantumRegister(hamiltonian.paulis.num_qubits, "q")
+    circuit = QuantumCircuit(qreg)
+    delta_t = total_duration/num_trotter_steps
+    
+    for i in range(num_trotter_steps):
+        circuit.append(step_circuit(hamiltonian, delta_t).to_gate(label = "step_circuit"), qreg)
+        circuit.barrier()
 
     return circuit
+
+def step_circuit(hamiltonian : SparsePauliOp, delta_t: float)-> QuantumCircuit:
+    paulis = hamiltonian.paulis
+    coeffs = hamiltonian.coeffs
+    qreg = QuantumRegister(paulis.num_qubits, "q")
+    circuit = QuantumCircuit(qreg)
+    for pauli, coeff in zip(paulis, coeffs):
+        gate = pauli_circuit(pauli, coeff, delta_t).to_gate(label = "pauli_circuit")
+        circuit.append(gate, qreg)
+
+
+    return circuit
+
+
+
+def pauli_circuit(pauli: Pauli, coeff: complex, delta_t:float)-> QuantumCircuit:
+    
+    def diag_pauli_circuit(pauli: Pauli, nb_qubits: int)-> QuantumCircuit:
+        circuit = QuantumCircuit(nb_qubits)
+        for i in range(nb_qubits):
+            if pauli.x[i]:
+                if pauli.z[i]:
+                    circuit.sdg(i)
+                circuit.h(i)  
+        return circuit
+    
+    def evolution_circuit(nb_qubits: int, coeff: complex, delta_t: float)->QuantumCircuit:
+        phi = 2*coeff*delta_t
+        circuit = QuantumCircuit(nb_qubits)
+        for i in range(nb_qubits-1):
+            circuit.cx(i, i+1)
+
+        circuit.rz(np.real(phi), nb_qubits-1)   
+        
+        for i in reversed(range(nb_qubits-1)):
+            circuit.cx(i, i+1)
+
+        return circuit
+
+    nb_qubits = pauli.num_qubits 
+    qreg = QuantumRegister(nb_qubits, "q")   
+    circuit = QuantumCircuit(qreg)
+
+    gate = diag_pauli_circuit(pauli, nb_qubits)
+
+    circuit.append(gate.to_gate(label = "diag_circuit"), qreg)
+    circuit.append(evolution_circuit(nb_qubits, coeff, delta_t).to_gate(label = "evolution"), qreg)
+    circuit.append(gate.inverse().to_gate(label = "inv_diag"), qreg)
+
+    return circuit
+
