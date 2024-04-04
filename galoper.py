@@ -33,14 +33,6 @@ def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, t
     evolved_states = np.einsum("sij, j -> si", evolution_operators, init_state)
     observables_expected_values = np.einsum("si, mij, sj -> sm", evolved_states.conj(), observables, evolved_states)
 
-
-    test1 = len(time_values)
-    test2 = len(observables)
-    print("shape attendue: ", test1, ", ", test2)
-    print("shape obtenue: ", observables_expected_values.shape)
-
-
-
     return observables_expected_values
 
 def trotter_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, time_values: NDArray[np.float_], observables: List[SparsePauliOp], num_trotter_steps: NDArray[np.int_],):
@@ -70,7 +62,7 @@ def trotter_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp,
 
 def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Parameter], num_trotter_steps: int) -> QuantumCircuit:
     """
-    Construct the ‘QuantumCircuit‘ using the first order Trotter formula.
+    Construct the "QuantumCircuit" using the first order Trotter formula.
 
     Args:
     hamiltonian (SparsePauliOp): The Hamiltonian which governs the evolution.
