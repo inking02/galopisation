@@ -19,25 +19,30 @@ def afficher_évolution_3D(results : NDArray, time_values : NDArray):
     plt.title("évolution du système selon le temps (s)")
     plt.show()
 
-def afficher_evolution_bloch(results : NDArray, time_values :NDArray):
+def afficher_evolution_bloch(results : NDArray):
     b = Bloch()
     xs = np.array(results[:, 0])
     ys = np.array(results[:, 1])
     zs = np.array(results[:, 2])
     pnts = [xs, ys, zs]
     b.add_points(pnts)
+    b.save()
     b.show()
 
-def afficher_evolution_2D(results :NDArray, time_values : NDArray):
-    x = np.array(results[:, 0])
-    y = np.array(results[: ,1])
-
-    plt.plot(x, y)
-    plt.show()
 
 def afficher_evolution_1D(results :NDArray, time_values: NDArray):
-    y = np.array(results[:, 2])
+    y = np.array(results[:, 0], dtype = int)
     x = time_values
+    plt.plot(x, y, label = "valeur moyenne de x selon t")
+    y = np.array(results[:, 1], dtype = int)
+    plt.plot(x, y, label = "valeur moyenne de y selon t")
+    y = np.array(results[:, 2], dtype = int)
+    plt.plot(x, y, label = "valeur moyenne de z selon t")
 
-    plt.plot(x, y)
+    plt.title("valeur moyenne des observables en fonction du temps")
+    plt.legend()
+    plt.xlabel("temps en seconde")
+    plt.ylabel("valeur moyenne des observables")
+    plt.savefig("bloch_0")
     plt.show()
+    

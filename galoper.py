@@ -2,7 +2,7 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from typing import List, Union
 from numpy.typing import NDArray
-from qiskit.quantum_info import SparsePauliOp, Pauli, PauliList
+from qiskit.quantum_info import SparsePauliOp, Pauli
 from qiskit.circuit import Parameter
 from qiskit.quantum_info import Statevector
 from qiskit.primitives import Estimator
@@ -29,12 +29,13 @@ def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, t
     hamiltonian_matrix = hamiltonian.to_matrix()
     eigenvalues, eigenvectors = np.linalg.eigh(hamiltonian_matrix)
 
-    w = np.exp((-1*time_values[:, None])*eigenvalues[None, :])
-    evolution_operators = np.einsum("sk, ik, jk -> sij", w, eigenvectors, eigenvectors.conj())
+    #w = np.exp((-1*time_values[:, None])*eigenvalues[None, :])
+    w = np.exp(1j*np.einsum("i, j-> ij", time_values, eigenvalues))
+    evolution_operators = np.einsum("ik, sk, jk -> sij", eigenvectors, w, np.conjugate(eigenvectors))
 
     init_state = Statevector(initial_state)
     evolved_states = np.einsum("sij, j -> si", evolution_operators, init_state)
-    observables_expected_values = np.einsum("si, mij, sj -> sm", evolved_states.conj(), observables, evolved_states)
+    observables_expected_values = np.einsum("si, mij, sj -> sm", np.conjugate(evolved_states), observables, evolved_states)
 
     return observables_expected_values
 
@@ -101,6 +102,15 @@ def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Par
     return circuit
 
 def step_circuit(hamiltonian : SparsePauliOp, delta_t: float)-> QuantumCircuit:
+    """
+    gives the trotter circuit for one step
+
+    args: 
+    delta_t: the variation of time for this step of the circuit
+    hamiltonian: the hamiltonian represented as a SparsePauliOp
+
+    return: the circuit representing one step of trotterization
+    """
     paulis = hamiltonian.paulis
     coeffs = hamiltonian.coeffs
     qreg = QuantumRegister(paulis.num_qubits, "q")
@@ -114,6 +124,15 @@ def step_circuit(hamiltonian : SparsePauliOp, delta_t: float)-> QuantumCircuit:
 
 
 def pauli_circuit(pauli: Pauli, coeff: complex, delta_t:float)-> QuantumCircuit:
+    """
+    build the trotter circuit for one particular pauli
+
+    args: 
+    pauli: the pauli to use for the circuit
+    delta_t: the variation of time for this pauli circuit
+
+    return: the circuit for the troterrization of this particular pauli
+    """
     
     def diag_pauli_circuit(pauli: Pauli, nb_qubits: int)-> QuantumCircuit:
         circuit = QuantumCircuit(nb_qubits)
