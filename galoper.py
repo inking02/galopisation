@@ -54,10 +54,25 @@ def trotter_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp,
     NDArray[np.float_]: The expected values of the observable. Should be of shape
     "(len(time_values), len(observables))".
     """
-    for n in range(num_trotter_steps):
-
-        observables_expected_values = None
-
+    circuits = []
+    observables_list = []
+    
+    for time_value, num_trotter_step in zip(time_values, num_trotter_steps):
+        observables_list = observables_list + observables
+        qreg = QuantumRegister(initial_state.num_qubits)
+        circuit = QuantumCircuit(qreg)
+        circuit.append(initial_state.to_gate(label = "init_state"), qreg)
+        circuit.append(trotter_circuit(hamiltonian, time_value, num_trotter_step).to_gate(label = "trotter_circuit"), qreg)
+        #fig = circuit.decompose(["init_state", "trotter_circuit", "step_circuit", "pauli_circuit", "diag_circuit", "evolution", "inv_diag"], reps = 4).draw(output = "mpl", style = "iqp")
+        #fig.savefig("evolution_circuit")
+        for i in range(len(observables)):
+            circuits.append(circuit)
+    
+    estimator = Estimator()
+    results = estimator.run(circuits, observables_list).result().values
+    
+    reshape_tuple = (len(time_values), len(observables))
+    observables_expected_values = results.reshape(reshape_tuple)
     return observables_expected_values
 
 def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Parameter], num_trotter_steps: int) -> QuantumCircuit:
@@ -78,7 +93,7 @@ def trotter_circuit(hamiltonian: SparsePauliOp, total_duration: Union[float, Par
     
     for i in range(num_trotter_steps):
         circuit.append(step_circuit(hamiltonian, delta_t).to_gate(label = "step_circuit"), qreg)
-        circuit.barrier()
+    
 
     return circuit
 
@@ -90,7 +105,6 @@ def step_circuit(hamiltonian : SparsePauliOp, delta_t: float)-> QuantumCircuit:
     for pauli, coeff in zip(paulis, coeffs):
         gate = pauli_circuit(pauli, coeff, delta_t).to_gate(label = "pauli_circuit")
         circuit.append(gate, qreg)
-
 
     return circuit
 
