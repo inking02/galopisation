@@ -6,6 +6,9 @@ from qiskit.quantum_info import SparsePauliOp, Pauli, PauliList
 from qiskit.circuit import Parameter
 from qiskit.quantum_info import Statevector
 from qiskit.primitives import Estimator
+
+
+
 def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, time_values: NDArray[np.float_], observables: List[SparsePauliOp],):
     """
     Simulate the exact evolution of a quantum system in state "initial_state" under a given
@@ -122,12 +125,12 @@ def pauli_circuit(pauli: Pauli, coeff: complex, delta_t:float)-> QuantumCircuit:
         return circuit
     
     def evolution_circuit(nb_qubits: int, coeff: complex, delta_t: float)->QuantumCircuit:
-        phi = 2*coeff*delta_t
+        phi = np.real(2*coeff*delta_t)
         circuit = QuantumCircuit(nb_qubits)
         for i in range(nb_qubits-1):
             circuit.cx(i, i+1)
 
-        circuit.rz(np.real(phi), nb_qubits-1)   
+        circuit.rz(phi, nb_qubits-1)   
         
         for i in reversed(range(nb_qubits-1)):
             circuit.cx(i, i+1)
