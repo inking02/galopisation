@@ -8,7 +8,6 @@ from qiskit.quantum_info import Statevector
 from qiskit.primitives import Estimator
 
 
-
 def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, time_values: NDArray[np.float_], observables: List[SparsePauliOp],):
     """
     Simulate the exact evolution of a quantum system in state "initial_state" under a given
@@ -30,7 +29,7 @@ def exact_evolution(initial_state: QuantumCircuit, hamiltonian: SparsePauliOp, t
     eigenvalues, eigenvectors = np.linalg.eigh(hamiltonian_matrix)
 
     #w = np.exp((-1*time_values[:, None])*eigenvalues[None, :])
-    w = np.exp(1j*np.einsum("i, j-> ij", time_values, eigenvalues))
+    w = np.exp(-1j*np.einsum("i, j-> ij", time_values, eigenvalues))
     evolution_operators = np.einsum("ik, sk, jk -> sij", eigenvectors, w, np.conjugate(eigenvectors))
 
     init_state = Statevector(initial_state)
