@@ -44,20 +44,21 @@ def results_validation(exact_results :NDArray[np.complex_], trotter_results : ND
 
 
 ############# test des fonctions implémentées ###################################################################
-nb_qubits = 1
+nb_qubits = 2
 pas = 0.5
 temps_total = 10
 nb_valeurs = int(temps_total/pas)
-Pauli_list = ["X", "Y"]
+Pauli_list = ["IX", "IY", "YI", "XI"]
 coeffs = 1/2*np.ones(2**nb_qubits)
 hamiltonian = SparsePauliOp(Pauli_list, coeffs)
 initial_state = QuantumCircuit(nb_qubits)
 initial_state.h(0)
+
 time_values = np.arange(0, temps_total, pas)
 
-X = SparsePauliOp("X", [1])
-Y = SparsePauliOp("Y", [1])
-Z = SparsePauliOp("Z", [1])
+X = SparsePauliOp("IX", [1])
+Y = SparsePauliOp("IY", [1])
+Z = SparsePauliOp("IZ", [1])
 observables = [X, Y, Z]
 
 num_steps = 100 * np.ones(nb_valeurs, dtype = int)
