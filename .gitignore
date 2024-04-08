@@ -3,3 +3,6 @@
 
 .png
 __pycache__/galoper.cpython-311.pyc
+__pycache__/evolution_simulation.cpython-311.pyc
+__pycache__/evolution_simulation_utils.cpython-311.pyc
+__pycache__/simulation_graphs.cpython-311.pyc

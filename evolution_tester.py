@@ -1,6 +1,6 @@
 import numpy as np
-from galoper import exact_evolution, trotter_evolution
-from trotter_graphs import afficher_evolution_3D, afficher_evolution_bloch, afficher_evolution_2D
+from evolution_simulation import exact_evolution, trotter_evolution
+from simulation_graphs import afficher_evolution_3D, afficher_evolution_bloch, afficher_evolution_2D
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.circuit.library import PauliEvolutionGate
@@ -23,11 +23,11 @@ def system_evolution_simulation(hamiltonian : SparsePauliOp, initial_state : Qua
     
     if graph_method == "bloch":
         afficher_evolution_bloch(evolution)
-    elif graph_method == "3D":
-        if (graph_labels != np.empty(4, dtype = str)).all():
-            afficher_evolution_3D(evolution, graph_title= graph_labels[0], first_observable=graph_labels[1], second_observable=graph_labels[2], third_observable=graph_labels[3])
-        else: 
-            afficher_evolution_3D(evolution)
+    #elif graph_method == "3D":
+    #    if (graph_labels != np.empty(4, dtype = str)).all():
+    #        afficher_evolution_3D(evolution, graph_title= graph_labels[0], first_observable=graph_labels[1], second_observable=graph_labels[2], third_observable=graph_labels[3])
+    #    else: 
+    #        afficher_evolution_3D(evolution)
     elif graph_method == "2D":
         if (graph_labels != np.empty(4, dtype = str)).all():
             afficher_evolution_2D(evolution, time_values, graph_title= graph_labels[0], first_observable=graph_labels[1], second_observable=graph_labels[2], third_observable=graph_labels[3])
@@ -35,7 +35,7 @@ def system_evolution_simulation(hamiltonian : SparsePauliOp, initial_state : Qua
             afficher_evolution_2D(evolution, time_values)
     else:
         print("Le graphique n'a pas été créé...")
-        print("Les méthodes d'affichage de graphique sont 'bloch', '3D' et '2D'")
+        print("Les méthodes d'affichage de graphique sont 'bloch' et '2D'")
     
     return evolution
 
@@ -66,13 +66,13 @@ observables = [X, Y, Z]
 
 num_steps = 100 * np.ones(nb_valeurs, dtype = int)
 
-exact_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, evolution_method = "exact", graph_method="2D")
-trotter_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, nb_steps=num_steps, evolution_method="trotter")
+exact_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, evolution_method = "exact", graph_method="3D")
+#trotter_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, nb_steps=num_steps, evolution_method="trotter")
 
 
-validation = results_validation(exact_results, trotter_results, 1e-1)
+#validation = results_validation(exact_results, trotter_results, 1e-1)
 
-print(validation)
+#print(validation)
 
 
 ###################### test avec les outils de qiskit #########################
