@@ -1,9 +1,8 @@
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from typing import List, Union
+from typing import List
 from numpy.typing import NDArray
-from qiskit.quantum_info import SparsePauliOp, Pauli
-from qiskit.circuit import Parameter
+from qiskit.quantum_info import SparsePauliOp
 from qiskit.quantum_info import Statevector
 from qiskit.primitives import Estimator
 from evolution_simulation_utils import trotter_circuit
@@ -34,9 +33,9 @@ def exact_evolution(
     hamiltonian_matrix = hamiltonian.to_matrix()
     eigenvalues, eigenvectors = np.linalg.eigh(hamiltonian_matrix)
 
-    w = np.exp(-1j * np.einsum("i, j-> ij", time_values, eigenvalues))
+    exp_array = np.exp(-1j * np.einsum("i, j-> ij", time_values, eigenvalues))
     evolution_operators = np.einsum(
-        "ik, sk, jk -> sij", eigenvectors, w, np.conjugate(eigenvectors)
+        "ik, sk, jk -> sij", eigenvectors, exp_array, np.conjugate(eigenvectors)
     )
 
     init_state = Statevector(initial_state)
@@ -76,8 +75,9 @@ def trotter_evolution(
     circuits = []
     observables_list = []
 
+    observables_list = len(num_trotter_steps)*observables
+
     for time_value, num_trotter_step in zip(time_values, num_trotter_steps):
-        observables_list = observables_list + observables
         qreg = QuantumRegister(initial_state.num_qubits)
         circuit = QuantumCircuit(qreg)
         circuit.append(initial_state.to_gate(label="init_state"), qreg)
@@ -93,6 +93,6 @@ def trotter_evolution(
     estimator = Estimator()
     results = estimator.run(circuits, observables_list).result().values
 
-    reshape_tuple = (len(time_values), len(observables))
-    observables_expected_values = results.reshape(reshape_tuple)
+    new_shape = (len(time_values), len(observables))
+    observables_expected_values = results.reshape(new_shape)
     return observables_expected_values

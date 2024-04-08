@@ -4,27 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#def afficher_evolution_3D(
-#    results: NDArray,
-#    first_observable: str = "valeur moyenne en x",
-#    second_observable: str = "valeur moyenne en y",
-#    third_observable: str = "valeur moyenne en z",
-#    graph_title: str = "évolution des valeurs moyennes x, y et z",
-#):
-
-#    fig = plt.figure()
-#    ax = fig.add_subplot(projection="3d")
-#    ax.set_xlabel(first_observable)
-#    ax.set_ylabel(second_observable)
-#    ax.set_zlabel(third_observable)
-#    xs = np.array(results[:, 0], dtype = int)
-#    ys = np.array(results[:, 1], dtype = int)
-#    zs = np.array(results[:, 2], dtype = int)
-#    ax.scatter(xs, ys, zs, color="blue")
-#    plt.title(graph_title)
-#    plt.savefig(graph_title)
-
-
 def afficher_evolution_bloch(results: NDArray):
     b = Bloch()
     xs = np.array(results[:, 0])

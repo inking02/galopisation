@@ -1,7 +1,6 @@
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from typing import List, Union
-from numpy.typing import NDArray
+from typing import Union
 from qiskit.quantum_info import SparsePauliOp, Pauli
 from qiskit.circuit import Parameter
 
@@ -26,10 +25,10 @@ def trotter_circuit(
     circuit = QuantumCircuit(qreg)
     delta_t = total_duration / num_trotter_steps
 
+    s_circuit = step_circuit(hamiltonian, delta_t).to_gate(label="step_circuit")
     for _ in range(num_trotter_steps):
-        circuit.append(
-            step_circuit(hamiltonian, delta_t).to_gate(label="step_circuit"), qreg
-        )
+        circuit.append(s_circuit, qreg)
+            
 
     return circuit
 
@@ -49,13 +48,53 @@ def step_circuit(hamiltonian: SparsePauliOp, delta_t: float) -> QuantumCircuit:
     qreg = QuantumRegister(paulis.num_qubits, "q")
     circuit = QuantumCircuit(qreg)
     for pauli, coeff in zip(paulis, coeffs):
-        gate = pauli_circuit(pauli, coeff, delta_t).to_gate(label="pauli_circuit")
+        gate = pauli_evolution_circuit(pauli, coeff, delta_t).to_gate(label="pauli_circuit")
         circuit.append(gate, qreg)
 
     return circuit
 
+def diag_pauli_circuit(pauli: Pauli) -> QuantumCircuit:
+        circuit = QuantumCircuit(pauli.num_qubits)
+        for i in range(pauli.num_qubits):
+            if pauli.x[i]:
+                if pauli.z[i]:
+                    circuit.sdg(i)
+                circuit.h(i)
+        return circuit
 
-def pauli_circuit(pauli: Pauli, coeff: complex, delta_t: float) -> QuantumCircuit:
+def control_circuit(pauli: Pauli) -> QuantumCircuit:
+    circuit = QuantumCircuit(pauli.num_qubits)
+    for i in range(pauli.num_qubits-1):
+        if pauli.x[i] or pauli.z[i]:
+            verif = True
+            j = 1
+            while verif:
+                if i+j < pauli.num_qubits:
+                    if pauli.x[i+j] or pauli.z[i+j]:
+                        circuit.cx(i, i+j)
+                        verif = False
+                else:
+                     verif = False
+                j +=1
+    return circuit
+
+
+def evolution_circuit(
+        pauli: Pauli, coeff: complex, delta_t: float
+    ) -> QuantumCircuit:
+        phi = np.real(2 * coeff * delta_t)
+        qreg = QuantumRegister(pauli.num_qubits)
+        circuit = QuantumCircuit(qreg)
+
+        C = control_circuit(pauli)
+        circuit.append(C.to_gate(label = "control_circuit"), qreg)
+        rotation_positions = np.where(np.logical_or(pauli.x, pauli.z))
+        circuit.rz(phi, (rotation_positions[0][-1]))
+        circuit.append(C.inverse().to_gate(label = "inv_control"), qreg)
+
+        return circuit
+
+def pauli_evolution_circuit(pauli: Pauli, coeff: complex, delta_t: float) -> QuantumCircuit:
     """
     build the trotter circuit for one particular pauli
 
@@ -66,39 +105,14 @@ def pauli_circuit(pauli: Pauli, coeff: complex, delta_t: float) -> QuantumCircui
     return: the circuit for the troterrization of this particular pauli
     """
 
-    def diag_pauli_circuit(pauli: Pauli, nb_qubits: int) -> QuantumCircuit:
-        circuit = QuantumCircuit(nb_qubits)
-        for i in range(nb_qubits):
-            if pauli.x[i]:
-                if pauli.z[i]:
-                    circuit.sdg(i)
-                circuit.h(i)
-        return circuit
-
-    def evolution_circuit(
-        nb_qubits: int, coeff: complex, delta_t: float
-    ) -> QuantumCircuit:
-        phi = np.real(2 * coeff * delta_t)
-        circuit = QuantumCircuit(nb_qubits)
-        for i in range(nb_qubits - 1):
-            circuit.cx(i, i + 1)
-
-        circuit.rz(phi, nb_qubits - 1)
-
-        for i in reversed(range(nb_qubits - 1)):
-            circuit.cx(i, i + 1)
-
-        return circuit
-
-    nb_qubits = pauli.num_qubits
-    qreg = QuantumRegister(nb_qubits, "q")
+    qreg = QuantumRegister(pauli.num_qubits, "q")
     circuit = QuantumCircuit(qreg)
 
-    gate = diag_pauli_circuit(pauli, nb_qubits)
+    gate = diag_pauli_circuit(pauli)
 
     circuit.append(gate.to_gate(label="diag_circuit"), qreg)
     circuit.append(
-        evolution_circuit(nb_qubits, coeff, delta_t).to_gate(label="evolution"), qreg
+        evolution_circuit(pauli, coeff, delta_t).to_gate(label="evolution"), qreg
     )
     circuit.append(gate.inverse().to_gate(label="inv_diag"), qreg)
 
