@@ -79,7 +79,7 @@ def control_circuit(pauli: Pauli) -> QuantumCircuit:
     return circuit
 
 
-def evolution_circuit(
+def rotation_circuit(
         pauli: Pauli, coeff: complex, delta_t: float
     ) -> QuantumCircuit:
         phi = np.real(2 * coeff * delta_t)
@@ -112,7 +112,7 @@ def pauli_evolution_circuit(pauli: Pauli, coeff: complex, delta_t: float) -> Qua
 
     circuit.append(gate.to_gate(label="diag_circuit"), qreg)
     circuit.append(
-        evolution_circuit(pauli, coeff, delta_t).to_gate(label="evolution"), qreg
+        rotation_circuit(pauli, coeff, delta_t).to_gate(label="evolution"), qreg
     )
     circuit.append(gate.inverse().to_gate(label="inv_diag"), qreg)
 

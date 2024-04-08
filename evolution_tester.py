@@ -66,10 +66,13 @@ num_steps = 100 * np.ones(nb_valeurs, dtype = int)
 exact_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, evolution_method = "exact", graph_method="2D")
 trotter_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, nb_steps=num_steps, evolution_method="trotter")
 
+print(exact_results)
+print(trotter_results)
 
-validation = results_validation(exact_results, trotter_results, 1e-1)
 
-print(validation)
+#validation = results_validation(exact_results, trotter_results, 1e-1)
+
+#print(validation)
 
 
 #fig = test.decompose(["control_circuit", "inv_control", "diag_circuit", "inv_diag", "evolution"], reps = 2).draw(output = "mpl", style = "iqp")
