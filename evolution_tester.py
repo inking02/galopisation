@@ -7,6 +7,7 @@ from qiskit.circuit.library import PauliEvolutionGate
 from qiskit.primitives import Estimator
 from numpy.typing import NDArray
 from typing import List
+from evolution_simulation_utils import pauli_evolution_circuit
 
 
 
@@ -63,16 +64,18 @@ observables = [X, Y, Z]
 
 num_steps = 100 * np.ones(nb_valeurs, dtype = int)
 
-exact_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, evolution_method = "exact", graph_method="2D")
-trotter_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, nb_steps=num_steps, evolution_method="trotter")
-
-print(exact_results)
-print(trotter_results)
+#exact_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, evolution_method = "exact", graph_method="2D")
+#trotter_results = system_evolution_simulation(hamiltonian, initial_state, time_values, observables, nb_steps=num_steps, evolution_method="trotter")
 
 
 #validation = results_validation(exact_results, trotter_results, 1e-1)
 
 #print(validation)
+
+test = pauli_evolution_circuit(Pauli("IXIX"), 1/2, 1)
+
+fig = test.decompose(["control_circuit", "inv_control", "rotation", "diag_circuit", "inv_diag"], reps = 3).draw(output = "mpl", style = "iqp")
+fig.savefig("pauli_circuit")
 
 
 #fig = test.decompose(["control_circuit", "inv_control", "diag_circuit", "inv_diag", "evolution"], reps = 2).draw(output = "mpl", style = "iqp")

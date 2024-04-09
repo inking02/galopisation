@@ -64,18 +64,9 @@ def diag_pauli_circuit(pauli: Pauli) -> QuantumCircuit:
 
 def control_circuit(pauli: Pauli) -> QuantumCircuit:
     circuit = QuantumCircuit(pauli.num_qubits)
-    for i in range(pauli.num_qubits-1):
-        if pauli.x[i] or pauli.z[i]:
-            verif = True
-            j = 1
-            while verif:
-                if i+j < pauli.num_qubits:
-                    if pauli.x[i+j] or pauli.z[i+j]:
-                        circuit.cx(i, i+j)
-                        verif = False
-                else:
-                     verif = False
-                j +=1
+    cx_positions = np.where(np.logical_or(pauli.x, pauli.z))
+    for i in range(len(cx_positions[0])-1):
+         circuit.cx(cx_positions[0][i], cx_positions[0][i+1])
     return circuit
 
 
@@ -86,11 +77,11 @@ def rotation_circuit(
         qreg = QuantumRegister(pauli.num_qubits)
         circuit = QuantumCircuit(qreg)
 
-        C = control_circuit(pauli)
-        circuit.append(C.to_gate(label = "control_circuit"), qreg)
+        cxs = control_circuit(pauli)
+        circuit.append(cxs.to_gate(label = "control_circuit"), qreg)
         rotation_positions = np.where(np.logical_or(pauli.x, pauli.z))
         circuit.rz(phi, (rotation_positions[0][-1]))
-        circuit.append(C.inverse().to_gate(label = "inv_control"), qreg)
+        circuit.append(cxs.inverse().to_gate(label = "inv_control"), qreg)
 
         return circuit
 
@@ -112,7 +103,7 @@ def pauli_evolution_circuit(pauli: Pauli, coeff: complex, delta_t: float) -> Qua
 
     circuit.append(gate.to_gate(label="diag_circuit"), qreg)
     circuit.append(
-        rotation_circuit(pauli, coeff, delta_t).to_gate(label="evolution"), qreg
+        rotation_circuit(pauli, coeff, delta_t).to_gate(label="rotation"), qreg
     )
     circuit.append(gate.inverse().to_gate(label="inv_diag"), qreg)
 
