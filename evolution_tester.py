@@ -18,35 +18,40 @@ def results_validation(exact_results :NDArray[np.complex_], trotter_results : ND
 
 
 ############# test des fonctions implémentées ###################################################################
-nb_qubits = 2
-pas = 0.02
+nb_qubits = 1
+pas = 0.1
 temps_total = 10
 nb_valeurs = int(temps_total/pas)
-Pauli_list = ["IX", "IY", "YI", "XI"]
+Pauli_list = ["X", "Y"]
 coeffs = 1/2*np.ones(2**nb_qubits)
 hamiltonian = SparsePauliOp(Pauli_list, coeffs)
 initial_state = QuantumCircuit(nb_qubits)
 initial_state.h(0)
 
 time_values = np.arange(0, temps_total, pas)
+tr_stop = 10
 
-X = SparsePauliOp("IX", [1])
-Y = SparsePauliOp("IY", [1])
-Z = SparsePauliOp("IZ", [1])
+tr_values = 25
+tr_time_values = np.linspace(0, tr_stop, num = tr_values)
+
+X = SparsePauliOp("X", [1])
+Y = SparsePauliOp("Y", [1])
+Z = SparsePauliOp("Z", [1])
 observables = [X, Y, Z]
 
-num_steps = 100 * np.ones(nb_valeurs, dtype = int)
+num_steps = 100 * np.ones(tr_values, dtype = int)
 
 exact_results = exact_evolution(initial_state, hamiltonian, time_values, observables)
-trotter_results = trotter_evolution(initial_state, hamiltonian, time_values, observables, num_steps)
+trotter_results = trotter_evolution(initial_state, hamiltonian, tr_time_values, observables, num_steps)
 
 
-validation = results_validation(exact_results, trotter_results, 1e-1)
+#validation = results_validation(exact_results, trotter_results, 1e-1)
 
-print(validation)
+#print(validation)
 
-comparaison_graph(exact_results, trotter_results, time_values, 0)
-soustraction_graph(exact_results, trotter_results, time_values, 0)
+comparaison_graph(exact_results, trotter_results, time_values, tr_time_values, 0)
+#soustraction_graph(exact_results, trotter_results, time_values, 0, 0.01)
+#afficher_evolution_2D(trotter_results, time_values, "IIX", "IYI", "ZII", "3_qubits_evolution")
 
 
 #test = pauli_evolution_circuit(Pauli("IXIX"), 1/2, 1)

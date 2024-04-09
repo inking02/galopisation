@@ -35,19 +35,19 @@ def afficher_evolution_2D(
     plt.ylabel("valeur moyenne des observables")
     plt.savefig(graph_title)
 
-def comparaison_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], observable_column : int):
+def comparaison_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], tr_time_values: NDArray[np.float_], observable_column : int):
     y1 = np.array(exact_results[: ,observable_column])
     plt.plot(time_values, y1, label = "observable avec exact_evolution")
     y2 = np.array(trotter_results[:, observable_column])
-    plt.plot(time_values, y2, "ob", label = "observable avec trotter_evolution")
+    plt.plot(tr_time_values, y2, "ob", label = "observable avec trotter_evolution")
     plt.title("comparaison de la valeur moyenne d'un observable entre les résultats exacts et les résultats de la trotterisation")
     plt.legend()
     plt.xlabel("temps en seconde")
     plt.ylabel("valeur moyenne de l'observable")
     plt.savefig("comparaison_graph")
 
-def soustraction_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], observable_column : int):
-    y = np.array(exact_results[: ,observable_column] - trotter_results[:, observable_column])
+def soustraction_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], observable_column : int, tolerance : float):
+    y = np.array((exact_results[: ,observable_column] - trotter_results[:, observable_column])<tolerance, dtype=int)
     plt.plot(time_values, y)
     plt.title("comparaison de la valeur moyenne d'un observable entre les résultats exacts et les résultats de la trotterisation")
     plt.xlabel("temps en seconde")
