@@ -77,11 +77,11 @@ def rotation_circuit(
         qreg = QuantumRegister(pauli.num_qubits)
         circuit = QuantumCircuit(qreg)
 
-        c = control_circuit(pauli)
-        circuit.append(c.to_gate(label = "control_circuit"), qreg)
+        cxs = control_circuit(pauli)
+        circuit.append(cxs.to_gate(label = "control_circuit"), qreg)
         rotation_positions = np.where(np.logical_or(pauli.x, pauli.z))
         circuit.rz(phi, (rotation_positions[0][-1]))
-        circuit.append(c.inverse().to_gate(label = "inv_control"), qreg)
+        circuit.append(cxs.inverse().to_gate(label = "inv_control"), qreg)
 
         return circuit
 
