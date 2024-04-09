@@ -45,3 +45,11 @@ def comparaison_graph(exact_results: NDArray, trotter_results : NDArray, time_va
     plt.xlabel("temps en seconde")
     plt.ylabel("valeur moyenne de l'observable")
     plt.savefig("comparaison_graph")
+
+def soustraction_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], observable_column : int):
+    y = np.array(exact_results[: ,observable_column] - trotter_results[:, observable_column])
+    plt.plot(time_values, y)
+    plt.title("comparaison de la valeur moyenne d'un observable entre les résultats exacts et les résultats de la trotterisation")
+    plt.xlabel("temps en seconde")
+    plt.ylabel("valeur moyenne de l'observable")
+    plt.savefig("soustraction_graph")

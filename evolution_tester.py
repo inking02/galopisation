@@ -1,6 +1,6 @@
 import numpy as np
 from evolution_simulation import exact_evolution, trotter_evolution
-from simulation_graphs import afficher_evolution_bloch, afficher_evolution_2D, comparaison_graph
+from simulation_graphs import afficher_evolution_bloch, afficher_evolution_2D, comparaison_graph, soustraction_graph
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info import SparsePauliOp, Pauli
 from qiskit.circuit.library import PauliEvolutionGate
@@ -46,6 +46,8 @@ validation = results_validation(exact_results, trotter_results, 1e-1)
 print(validation)
 
 comparaison_graph(exact_results, trotter_results, time_values, 0)
+soustraction_graph(exact_results, trotter_results, time_values, 0)
+
 
 #test = pauli_evolution_circuit(Pauli("IXIX"), 1/2, 1)
 
