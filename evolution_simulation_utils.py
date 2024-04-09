@@ -63,6 +63,15 @@ def diag_pauli_circuit(pauli: Pauli) -> QuantumCircuit:
         return circuit
 
 def control_circuit(pauli: Pauli) -> QuantumCircuit:
+    """
+    does the control circuit for the evolution operator
+
+    args:
+    pauli: the pauli chain to effectue the circuit for
+
+    returns: 
+    the control circuit
+    """
     circuit = QuantumCircuit(pauli.num_qubits)
     cx_positions = np.where(np.logical_or(pauli.x, pauli.z))
     for i in range(len(cx_positions[0])-1):
@@ -73,6 +82,16 @@ def control_circuit(pauli: Pauli) -> QuantumCircuit:
 def rotation_circuit(
         pauli: Pauli, coeff: complex, delta_t: float
     ) -> QuantumCircuit:
+        """
+        does the rotation circuit for a pauli circuit
+
+        args:
+        pauli: the pauli to use for the circuit
+        coeff: the coefficient that multiplies the pauli
+        delta_t: the time that this circuit is applied
+
+        return: the circuit that does the rotation
+        """
         phi = np.real(2 * coeff * delta_t)
         qreg = QuantumRegister(pauli.num_qubits)
         circuit = QuantumCircuit(qreg)
