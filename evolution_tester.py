@@ -49,7 +49,8 @@ trotter_results = trotter_evolution(initial_state, hamiltonian, tr_time_values, 
 
 #print(validation)
 
-comparaison_graph(exact_results, trotter_results, time_values, tr_time_values, 0)
+
+comparaison_graph(exact_results, trotter_results, time_values, tr_time_values, len(observables))
 #soustraction_graph(exact_results, trotter_results, time_values, 0, 0.01)
 #afficher_evolution_2D(trotter_results, time_values, "IIX", "IYI", "ZII", "3_qubits_evolution")
 
