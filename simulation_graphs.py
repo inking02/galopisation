@@ -35,15 +35,26 @@ def afficher_evolution_2D(
     plt.ylabel("valeur moyenne des observables")
     plt.savefig(graph_title)
 
-def comparaison_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], tr_time_values: NDArray[np.float_], observable_column : int):
-    y1 = np.array(exact_results[: ,observable_column])
-    plt.plot(time_values, y1, label = "observable avec exact_evolution")
-    y2 = np.array(trotter_results[:, observable_column])
-    plt.plot(tr_time_values, y2, "ob", label = "observable avec trotter_evolution")
-    plt.title("comparaison de la valeur moyenne d'un observable entre les résultats exacts et les résultats de la trotterisation")
+def comparaison_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], tr_time_values: NDArray[np.float_], nb_observables : int):
+    y1 = np.array(exact_results[: ,0])
+    plt.plot(time_values, y1, "r", label = "observable" + str(1) + " avec exact_evolution")
+    y2 = np.array(trotter_results[:, 0])
+    plt.plot(tr_time_values, y2, "or", label = "observable" + str(1) + " avec trotter_evolution")
+
+    y1 = np.array(exact_results[: ,1])
+    plt.plot(time_values, y1, "b", label = "observable" + str(2) + " avec exact_evolution")
+    y2 = np.array(trotter_results[:, 1])
+    plt.plot(tr_time_values, y2, "ob", label = "observable" + str(2) + " avec trotter_evolution")
+
+    y1 = np.array(exact_results[: ,2])
+    plt.plot(time_values, y1, "g", label = "observable" + str(3) + " avec exact_evolution")
+    y2 = np.array(trotter_results[:, 2])
+    plt.plot(tr_time_values, y2, "og", label = "observable" + str(3) + " avec trotter_evolution")
+
+    plt.title("comparaison des résultats")
     plt.legend()
     plt.xlabel("temps en seconde")
-    plt.ylabel("valeur moyenne de l'observable")
+    plt.ylabel("valeur moyenne des observables")
     plt.savefig("comparaison_graph")
 
 def soustraction_graph(exact_results: NDArray, trotter_results : NDArray, time_values : NDArray[np.float_], observable_column : int, tolerance : float):
